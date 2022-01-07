@@ -2,8 +2,8 @@ from rest_framework.views import APIView
 from .models import User
 from .serializers import UserSerializer
 from rest_framework.response import Response
-from rest_framework.exceptions import AuthenticationFailed
 import json
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class Signup(APIView):
@@ -28,12 +28,16 @@ class Login(APIView):
         user = User.objects.filter(username=var["username"]).first()
 
         if user is None:
-            # raise AuthenticationFailed("USER NOT FOUND!!!!")
             return Response("Invalid username")
         
         temp = UserSerializer(user)
         if (var["password"]==temp.data["password"]):
-            return Response(temp.data["id"])
+            refresh = RefreshToken.for_user(user)
+            
+            return Response({
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+                })
         return Response("Invalid PW")
 
                
