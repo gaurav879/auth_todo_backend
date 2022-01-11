@@ -3,7 +3,6 @@ import json
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import AccessToken
 
 from login.models import User
@@ -11,12 +10,14 @@ from login.models import User
 from .models import Task
 from .serializers import EventSerializer
 
-JWT_authenticator = JWTAuthentication()
 
 
 class Home(APIView):
     def get(self, request):
-        arr = Task.objects.all()
+        print(request)
+        var=request.headers["Authorization"].split(" ")[1]
+        access_token=AccessToken(var)
+        arr = Task.objects.filter(userid=access_token["user_id"])
         serializer = EventSerializer(arr, many=True)
         return Response(serializer.data)
 
@@ -37,21 +38,13 @@ class Home(APIView):
 
     def post(self, request):
         var = json.loads(request.body)
+        temp=request.headers["Authorization"].split(" ")[1]
+        access_token=AccessToken(temp)
+        var["userid"]=access_token["user_id"]
+        print(var)
         serializer = EventSerializer(data=var)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
 
 
-class Data(APIView):
-    permission_classes = (AllowAny,)
-
-    def post(self, request):
-        var = json.loads(request.body)
-        print(var)
-        token_str = var["jwt"]
-        access_token = AccessToken(token_str)
-        user = Task.objects.filter(userid=access_token["user_id"])
-        print(user)
-        serializer = EventSerializer(user, many=True)
-        return Response(serializer.data)
