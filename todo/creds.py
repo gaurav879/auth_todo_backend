@@ -1,0 +1,5 @@
+NAME = 'todo_auth' 
+USER = 'tom' 
+PASSWORD = 'password' 
+HOST = 'localhost' 
+PORT= '5432' 
